@@ -59,7 +59,7 @@ object KafkaTest {
     //val ssc = new OLA2_StreamingContext(sc, null, Seconds(conf.get("ola.common.sparkstreaming_batch_seconds").toInt))
     val timeDuration = Seconds(4)
     import StreamingContext._
-    val Array(zkQuorum, group, topics, numThreads, outPutHdfsPath, configFile) = Array(args(0), args(1), args(2), args(3), args(4), args(5))
+    val Array(zkQuorum, group, topics, numThreads, outPutHdfsPath, configFile, printOrWriteFile) = Array(args(0), args(1), args(2), args(3), args(4), args(5), args(6))
     prop.load(new FileInputStream(configFile))
     val topicMap = topics.split(",").map((_,numThreads.toInt)).toMap
     val ssc =  new StreamingContext(sc, Seconds(2))
@@ -136,8 +136,11 @@ object KafkaTest {
       }
       resultMap.iterator
     })
-    result.print
-    result.saveAsTextFiles(outPutHdfsPath)
+    if(printOrWriteFile.toBoolean) {
+      result.print
+    } else {
+      result.saveAsTextFiles(outPutHdfsPath)
+    }
     ssc.start()
     ssc.awaitTermination()
   }
