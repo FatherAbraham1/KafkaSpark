@@ -40,7 +40,7 @@ seq(sbtprotobuf.ProtobufPlugin.protobufSettings: _*)
 //  "com.datastax.spark" %% "spark-cassandra-connector-java" % "1.0.0-rc5"
 libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-    "org.apache.spark" %% "spark-core" % "1.2.0" % "provided",
+    "org.apache.spark" %% "spark-core" % "1.2.0",
     "org.apache.spark" %% "spark-streaming" % "1.2.0",
     "org.apache.spark" %% "spark-streaming-kafka" % "1.2.0",
     "org.apache.kafka" %% "kafka" % "0.8.1.1")
