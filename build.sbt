@@ -4,7 +4,7 @@ import sbtassembly.Plugin.AssemblyKeys._
 
 assemblySettings
 
-name := "benchmark-breeze-on-spark"
+name := "KafkaSpark"
 
 version := "0.0.1"
 
