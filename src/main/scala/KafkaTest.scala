@@ -13,15 +13,25 @@ import scala.collection.mutable.HashMap
 object KafkaTest {
   def main(args: Array[String]): Unit = {
     //testKafka()
-    agg(args)
+    //agg(args)
     //testWithArgs()
+    //testHDFSRead()
+    testKafkaWord(args)
+  }
+
+  def testHDFSRead(): Unit = {
+    val conf = new SparkConf().setMaster("local").setAppName("ibde")
+    val sc = new SparkContext(conf)
+    val text = sc.textFile("hdfs://10.172.98.79:9000/StreamingSample_small700MB.txt")
+    text.take(11)
   }
 
   def testWithArgs(): Unit ={
     val args = Array("10.190.172.43:9092", "test", "3", "5", "hdfs://10.190.172.89:8020/yanjiedata/kafkaOutput/kafkaOuput1")
     agg(args)
   }
-  def testKafka(): Unit = {
+
+  def testKafkaWord(args: Array[String]): Unit = {
     val sparkConf = new SparkConf().setAppName("KafkaWordCount")
     val sc = new SparkContext(sparkConf)
     import org.apache.spark.streaming.{Minutes, Seconds, StreamingContext}
@@ -30,7 +40,32 @@ object KafkaTest {
     import java.util.Properties
     import org.apache.spark.streaming._
     import org.apache.spark.SparkConf
-    val Array(zkQuorum, group, topics, numThreads) = Array("10.190.172.43:2181", "test-consumer-group", "test", "1")
+//    val Array(zkQuorum, group, topics, numThreads) = Array("10.190.172.43:2181", "test-consumer-group", "test", "1")
+    val Array(zkQuorum, group, topics, numThreads, outPutHdfsPath, configFile, printOrWriteFile) = Array(args(0), args(1), args(2), args(3), args(4), args(5), args(6))
+    val ssc =  new StreamingContext(sc, Seconds(2))
+    ssc.checkpoint("checkpoint")
+    val topicMap = topics.split(",").map((_,numThreads.toInt)).toMap
+    val lines = KafkaUtils.createStream(ssc, zkQuorum, group, topicMap).map(_._2)
+   // val words = lines.flatMap(_.split(" "))
+    val wordCounts = lines.count()
+     //.map(x => (x, 1L))
+      //.reduceByKeyAndWindow(_ + _, _ - _, Minutes(10), Seconds(2), 2)
+    wordCounts.print()
+    ssc.start()
+    ssc.awaitTermination()
+  }
+
+  def testKafka(args: Array[String]): Unit = {
+    val sparkConf = new SparkConf().setAppName("KafkaWordCount")
+    val sc = new SparkContext(sparkConf)
+    import org.apache.spark.streaming.{Minutes, Seconds, StreamingContext}
+    import StreamingContext._
+    //import org.apache.spark.streaming.kafka.KafkaUtils
+    import java.util.Properties
+    import org.apache.spark.streaming._
+    import org.apache.spark.SparkConf
+//    val Array(zkQuorum, group, topics, numThreads) = Array("10.190.172.43:2181", "test-consumer-group", "test", "1")
+    val Array(zkQuorum, group, topics, numThreads, outPutHdfsPath, configFile, printOrWriteFile) = Array(args(0), args(1), args(2), args(3), args(4), args(5), args(6))
     val ssc =  new StreamingContext(sc, Seconds(2))
     ssc.checkpoint("checkpoint")
     val topicMap = topics.split(",").map((_,numThreads.toInt)).toMap
